@@ -74,6 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,6 +111,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Card.h" />
+    <ClInclude Include="Deck.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Player.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Card.cpp" />
+    <ClCompile Include="Deck.cpp" />
+    <ClCompile Include="Game.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
