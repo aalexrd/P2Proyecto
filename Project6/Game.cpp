@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game() : bet(0), players(2), player(new Player[2]) //by default it'll have 2 players
+Game::Game() : bet(0), firstBet(0), players(2), player(new Player[2]) //by default it'll have 2 players
 {
 }
 
@@ -51,81 +51,60 @@ void Game::increaseBet()
 	}
 }
 
-int Game::checkCards()
+int* Game::checkCards() const
 {
-	int highest = 0;
-	enum pokerHands
-	{
-		HighCard,
-		OnePair,
-		TwoPair,
-		ThreeOfAKind,
-		Straight,
-		Flush,
-		FullHouse,
-		FourOfAKind,
-		StraightFlush,
-		RoyalFlush
-	};
-	int* p = new int[players];
+	int count = 0;
 	for (int i = 0; i < players; i++)
 	{
 		if (!player[i].getActive()) //if the player folded skip
 			continue;
 		if (checkRoyalFlush(i))
-		{
-			p[i] = RoyalFlush;
 			continue;
-		}
 		if (checkStraightFlush(i))
-		{
-			p[i] = StraightFlush;
 			continue;
-		}
-		if(checkFourOfAKind(i))
-		{
-			p[i] = FourOfAKind;
+		if (checkFourOfAKind(i))
 			continue;
-		}
-		if(checkFullHouse(i))
-		{
-			p[i] = FullHouse;
+		if (checkFullHouse(i))
 			continue;
-		}
-		if(checkFlush(i))
-		{
-			p[i] = Flush;
+		if (checkFlush(i))
 			continue;
-		}
-		if(checkStraight(i))
-		{
-			p[i] = Straight;
+		if (checkStraight(i))
 			continue;
-		}
-		if(checkThreeOfAKind(i))
-		{
-			p[i] = ThreeOfAKind;
+		if (checkThreeOfAKind(i))
 			continue;
-		}
-		if(checkTwoPair(i))
-		{
-			p[i] = TwoPair;
+		if (checkTwoPair(i))
 			continue;
-		}
-		if(checkOnePair(i))
-		{
-			p[i] = OnePair;
+		if (checkOnePair(i))
 			continue;
-		}
-		p[i] = HighCard;
+		player[i].setHand(HighCard);
+		sortCards(i); //for high card
 	}
-	for (int i = 0; i < players; i++)
-	{
-		switch(p[i])
+	sameHand();
+	for (int k = 9; k >= 0; k--)
+		for (int i = 0; i < players; i++)
 		{
-			
+			if (!player[i].getActive()) //if the player folded skip
+				continue;
+			if (player[i].getHand() == k) //if enters here it found the highest hand among all players
+				for (k = 0; k < players; k++) //then lets find if there's a tie
+				{
+					if (player[i].getHand() == player[k].getHand())
+						++count;
+					int* winners;
+					if (count == 0) //if there's only one winner create structure for this if not work
+					{
+						winners = &i;
+						return winners;
+					}
+					winners = new int[count];
+					winners[0] = i;
+					for (k = 0 , count = 0; k < players; k++)
+						if (player[i].getHand() == player[k].getHand())
+							winners[++count] = k;
+					return winners;
+				}
 		}
-	}
+	return nullptr;
 }
 
 int Game::checkHighCard(int i) const
@@ -139,15 +118,34 @@ int Game::checkHighCard(int i) const
 
 bool Game::checkOnePair(int i) const
 {
-	int counter, c;
+	int counter, c, l;
 	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank
 	{
-		counter = 0;
-		for (c = 0; c < 5; c++)
+		for (c = 0 , counter = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			{
 				++counter;
-		if (counter == 2)
-			return true;
+				if (counter == 2)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
+						for (int ch = 0; ch < 5; ch++)
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
+					/*fh = -1;
+					break;
+				}*/
+					for (l = 12 , counter = 7; l >= 0 && counter < 11; l--)
+						for (c = 0; c < 5; c++)
+							if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l] && player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
+							{
+								++counter;
+								player[i].getCards()[counter] = player[i].getCards()[c];
+								break;
+							}
+					return true;
+				}
+			}
 	}
 	return false;
 }
@@ -158,24 +156,47 @@ bool Game::checkTwoPair(int i) const
 	char rank = 0;
 	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank
 	{
-		counter = 0;
-		for (c = 0; c < 5; c++)
+		for (c = 0 , counter = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			{
 				++counter;
-		if (counter == 2)
-		{
-			rank = player[i].getCards()[c].getCard();
-			break;
-		}
+				if (counter == 2)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
+						for (int ch = 0; ch < 5; ch++)
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
+					/*fh = -1;
+					break;
+				}*/
+					rank = player[i].getCards()[c].getCard();
+					break;
+				}
+			}
 	}
 	for (int fh = 0; fh < 13; fh++) //look for another two cards of same rank but different from the past two
 	{
-		counter = 0;
-		for (c = 0; c < 5; c++)
+		for (c = 0 , counter = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && player[i].getCards()[c].getCard() != rank)
+			{
 				++counter;
-		if (counter == 2)
-			return true;
+				if (counter == 2)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
+						for (int ch = 0; ch < 5; ch++)
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[8] = player[i].getCards()[c]; //change c for ch
+					/*fh = -1;
+					break;
+				}*/
+					for (int ch = 0; ch < 5; ch++) //look for fifth different
+						if (player[i].getCards()[ch].getCard() != player[i].getCards()[7].getCard() && player[i].getCards()[ch].getCard() != player[i].getCards()[8].getCard())
+							player[i].getCards()[9] = player[i].getCards()[ch];
+					return true;
+				}
+			}
 	}
 	return false;
 }
@@ -188,9 +209,27 @@ bool Game::checkThreeOfAKind(int i) const
 		counter = 0;
 		for (c = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			{
 				++counter;
-		if (counter == 3)
-			return true;
+				if (counter == 3)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the three
+						for (int ch = 0; ch < 5; ch++)
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[7] = player[i].getCards()[c]; //change c to ch
+					/*fh = -1;
+					break;
+				}*/
+					for (c = 0 , counter = 7; c < 5; c++)
+						if (player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
+						{
+							++counter;
+							player[i].getCards()[counter] = player[i].getCards()[c];
+						}
+					return true;
+				}
+			}
 	}
 	return false;
 }
@@ -202,7 +241,7 @@ bool Game::checkStraight(int i) const
 	for (int l = 0; l < 13 && passed; l++) //find lowest ranking of card
 		for (int c = 0; c < 5 && passed; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l])
-			{
+			{ //for to save cards in order from #7
 				lowest = c;
 				passed = false; //break both for
 			}
@@ -216,10 +255,13 @@ bool Game::checkStraight(int i) const
 			if (player[i].getCards()[sf].getCard() == getDeck()->getCards()[lowest])
 			{
 				++lowest;
+				if (lowest == 4)
+				{
+					sortCards(i);
+					return true;
+				}
 				sf = 0;
 			}
-		if (lowest == 3)
-			return true;
 	}
 	else
 	{
@@ -228,10 +270,13 @@ bool Game::checkStraight(int i) const
 			{
 				++lowest;
 				++counter;
+				if (counter == 5)
+				{
+					sortCards(i);
+					return true;
+				}
 				sf = 0;
 			}
-		if (counter == 5)
-			return true;
 	}
 	return false;
 }
@@ -246,35 +291,58 @@ bool Game::checkFlush(int i) const
 			if (player[i].getCards()[c].getSuit() == getDeck()->getSuits()[fh])
 				++counter;
 		if (counter == 5)
+		{
+			player[i].getCards()[7] = player[i].getCards()[checkHighCard(i)];
 			return true;
+		}
 	}
 	return false;
 }
 
 bool Game::checkFullHouse(int i) const
 {
-	int counter, c;
-	char rank = 0;
-	for (int fh = 0; fh < 13; fh++) //look for three cards of same rank
+	int counter, fh, c;
+	for (fh = 0; fh < 13; fh++) //look for three cards of same rank
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			{
 				++counter;
-		if (counter == 3)
-		{
-			rank = player[i].getCards()[c].getCard();
-			break;
-		}
+				if (counter == 3)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the three
+						for (int ch = 0; ch < 5; ch++)
+							if(player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
+					/*fh = -1;
+					break;
+				}*/
+					break;
+				}
+			}
 	}
-	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank different from the past three
+	for (fh = 0; fh < 13; fh++) //look for two cards of same rank different from the past three
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && player[i].getCards()[c].getCard() != rank)
+			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
+			{
 				++counter;
-		if (counter == 2)
-			return true;
+				if (counter == 2)
+				{
+					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
+						for (ch = 0; ch < 5; ch++)
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							{*/
+					player[i].getCards()[8] = player[i].getCards()[c]; //change c for ch
+					/*fh = -1;
+					break;
+				}*/
+					return true;
+				}
+			}
 	}
 	return false;
 }
@@ -287,9 +355,17 @@ bool Game::checkFourOfAKind(int i) const
 		counter = 0;
 		for (int c = 0; c < 5; c++)
 			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fk])
+			{
 				++counter;
-		if (counter == 4)
-			return true;
+				if (counter == 4)
+				{
+					player[i].getCards()[7] = player[i].getCards()[c];
+					/*for (fk = 0; fk < 5; fk++)
+						if(player[i].getCards()[fk].getCard() != player[i].getCards()[7].getCard())
+							player[i].getCards()[8] = player[i].getCards()[fk];*/
+					return true;
+				}
+			}
 	}
 	return false;
 }
@@ -326,18 +402,278 @@ bool Game::checkRoyalFlush(int i) const
 					if (player[i].getCards()[rf].getCard() == getDeck()->getCards()[c])
 					{
 						++counter;
+						if (counter == 5)
+							return true;
 						rf = 0;
 					}
-			if (counter == 5)
-				return true;
 		}
 	}
 	return false;
 }
 
-void Game::sameHand(int* p)
+void Game::sameHand() const
+//set wich player has the highest hand based on rules
 {
+	for (int i = 0; i < players; i++)
+		for (int j = 0; j < players; j++)
+			if (player[i].getHand() == player[j].getHand() && i != j && player[i].getHand() != -1)
+				switch (player[i].getHand())
+				{
+				case RoyalFlush: //if two got Royal Flush then the suit decides
+					if (player[i].getCards()[0].getSuit() < player[j].getCards()[0].getSuit())
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case StraightFlush:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same straight flush then suit decides
+					{
+						if (player[i].getCards()[0].getSuit() < player[j].getCards()[0].getSuit())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else //then one is higher than the other
+					{
+						if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					break;
+				case FourOfAKind:
+					/*if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same four of a kind then fifth card decides
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if for some reason the fifth is the same then suit decides
+						{
+							if (player[i].getCards()[8].getSuit() < player[j].getCards()[8].getSuit())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else //then one fifth is higher than the other
+						{
+							if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+					}
+					else //then one is higher than the other
+					{ */
+					if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard())
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					//}
+					break;
+				case FullHouse:
+					/*if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same three of same rank 
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if for some reason the pair is the same then suit decides
+						{
+							if (player[i].getCards()[8].getSuit() < player[j].getCards()[8].getSuit())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else //then one pair is higher than the other
+						{
+							if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+					}
+					else //then one trio is higher than the other
+					{*/
+					if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard())
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					//}
+					break;
+				case Flush:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same flush then sum decides 
+					{
+						int sum = 0, sum2 = 0;
+						for (int k = 0; k < 5; k++)
+						{
+							sum += player[i].getCards()[k].getCard();
+							sum2 += player[j].getCards()[k].getCard();;
+						}
+						if (sum == sum2) //if fore some reason the sums are the same then suit decides
+						{
+							if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else if (sum > sum2)
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one flush is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case Straight:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same high card then suit decide
+					{
+						if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case ThreeOfAKind:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same trio card then others decide
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard())
+						{
+							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//then suit decides
+							{
+								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+									player[j].setHand(-1);
+								else
+									player[i].setHand(-1);
+							}
+							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case TwoPair:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same highest pair card then others decide
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //second pair
+						{
+							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then fifth card suit decides
+							{
+								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+									player[j].setHand(-1);
+								else
+									player[i].setHand(-1);
+							}
+							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case OnePair:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same pair then others decide
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if same highest single card then next decide
+						{
+							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then next higher card decides
+							{
+								if (player[i].getCards()[10].getCard() == player[j].getCards()[10].getCard())//if same then suit decides
+								{
+									if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+										player[j].setHand(-1);
+									else
+										player[i].setHand(-1);
+								}
+								else if (player[i].getCards()[10].getCard() > player[j].getCards()[10].getCard())
+									player[j].setHand(-1);
+								else
+									player[i].setHand(-1);
+							}
+							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				case HighCard:
+					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same highest then others decide
+					{
+						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if same next high then next decide
+						{
+							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then next card decides
+							{
+								if (player[i].getCards()[10].getCard() == player[j].getCards()[10].getCard())//if same then next card decides
+								{
+									if (player[i].getCards()[11].getCard() == player[j].getCards()[11].getCard())//if same then suit decides
+									{
+										if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
+											player[j].setHand(-1);
+										else
+											player[i].setHand(-1);
+									}
+									else if (player[i].getCards()[11].getCard() > player[j].getCards()[11].getCard())
+										player[j].setHand(-1);
+									else
+										player[i].setHand(-1);
+								}
+								else if (player[i].getCards()[10].getCard() > player[j].getCards()[10].getCard())
+									player[j].setHand(-1);
+								else
+									player[i].setHand(-1);
+							}
+							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
+								player[j].setHand(-1);
+							else
+								player[i].setHand(-1);
+						}
+						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+							player[j].setHand(-1);
+						else
+							player[i].setHand(-1);
+					}
+					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
+						player[j].setHand(-1);
+					else
+						player[i].setHand(-1);
+					break;
+				}
+}
 
+void Game::sortCards(int i) const
+{
+	for (int l = 12, counter = 7; l >= 0 && counter < 12; l--)
+		for (int c = 0; c < 5; c++)
+			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l])
+			{
+				player[i].getCards()[counter] = player[i].getCards()[c];
+				++counter;
+				break;
+			}
 }
 
 float Game::getBet() const

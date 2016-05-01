@@ -10,19 +10,18 @@ class Player
 private:
 	string name;
 	float bet;
-	float earned;
+	int hand; //which hand has the player
 	Card* cards;
 	bool active;
 public:
-	Player();
-	Player(string name, float bet, float earned, Card* cards, bool active);
+	explicit Player(string name = "Generic", float bet = 0, int hand = 0, Card* cards = nullptr, bool active = false);
 	~Player();
 	void setName(string name);
 	string getName() const;
 	void setBet(float bet);
 	float getBet() const;
-	void setEarned(float s);
-	float getEarned() const;
+	int getHand() const;
+	void setHand(int hand);
 	Card* getCards() const;
 	void setCards(Card* cards);
 	bool addCard(Card card) const;

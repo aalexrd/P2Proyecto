@@ -11,6 +11,21 @@ class Game : public Deck
 private:
 	float bet;
 	float firstBet;
+
+	enum pokerHands
+	{
+		HighCard,
+		OnePair,
+		TwoPair,
+		ThreeOfAKind,
+		Straight,
+		Flush,
+		FullHouse,
+		FourOfAKind,
+		StraightFlush,
+		RoyalFlush
+	};
+
 	int players; //number of players
 	Player* player; //original poker game has a maximum of 7 players, maximum is 10 for any version
 	int checkHighCard(int i) const;
@@ -23,13 +38,14 @@ private:
 	bool checkFourOfAKind(int i) const;
 	bool checkStraightFlush(int i) const;
 	bool checkRoyalFlush(int i) const;
-	void sameHand(int *p);
+	void sameHand() const;
+	void sortCards(int i) const;
 public:
 	Game();
 	Game(float bet, int players, Player* player);
 	void dealCards() const;
 	void increaseBet();
-	int checkCards();
+	int* checkCards() const;
 	float getBet() const;
 	void setBet(float bet);
 	float getFirstBet() const;

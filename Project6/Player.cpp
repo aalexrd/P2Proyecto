@@ -1,15 +1,10 @@
 #include "Player.h"
 
-Player::Player(): name("Generic"), bet(0), earned(0), cards(new Card[5]), active(false)
-//five cards maximum
-{
-}
-
-Player::Player(string name = "Generic", float bet = 0, float earned = 0, Card* cards = nullptr, bool active = false) : name(name), bet(bet), earned(earned), active(active)
+Player::Player(string name, float bet, int hand, Card* cards, bool active) : name(name), bet(bet), hand(hand), active(active)
 {
 	//if they did'nt send a custom pointer of Card then create it
 	if (cards == nullptr)
-		this->cards = new Card[5];
+		this->cards = new Card[12]; //enough space for variants like texas hold'em
 	else
 		this->cards = cards;
 }
@@ -38,14 +33,14 @@ float Player::getBet() const
 	return bet;
 }
 
-void Player::setEarned(float s)
+int Player::getHand() const
 {
-	earned = s;
+	return hand;
 }
 
-float Player::getEarned() const
+void Player::setHand(int hand)
 {
-	return earned;
+	this->hand = hand;
 }
 
 Card* Player::getCards() const
