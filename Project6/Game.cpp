@@ -1,35 +1,22 @@
 #include "Game.h"
 
-Game::Game() : bet(0), firstBet(0), players(2), player(new Player[2]) //by default it'll have 2 players
+Game::Game(float bet, float firstBet, int players, Player* player) : bet(bet), firstBet(firstBet), players(players), player(player)
 {
-}
-
-Game::Game(float bet = 0, int players = 2, Player* player = nullptr) : bet(bet), players(players)
-{
-	//if they didn't send a custom pointer of Player then create it
-	if (player == nullptr)
-		this->player = new Player[this->players];
-	else
-		this->player = player;
-	//sum all bets for initial value if this is the first time
-	if (bet == 0)
-		for (int i = 0; i < players; i++)
-			this->bet += player[i].getBet();
 	dealCards(); //time to deal cards to our players
-	srand(time(nullptr)); //Initialize random number generator with a seed of time
 }
 
 void Game::dealCards() const
 {
 	int v, playerIndex = 0, cardIndex = 0;
-
+	if (players == 0)
+		return;
 	while (cardIndex < 5) //we will be playing five card draw version of poker
 	{
 		v = rand() % 52; //random number between 0 and 51
 		if (!getDeck()[v].getGiven())
 		{
 			player[playerIndex].addCard(getDeck()[v]);
-			getDeck()->setGiven(true);
+			getDeck()[v].setGiven(true);
 			++cardIndex;
 			if (cardIndex == 5 && playerIndex < players)//if I haven't finished to deal cards to all players
 			{
@@ -44,8 +31,8 @@ void Game::increaseBet()
 {
 	for (int i = 0; i < players; i++)
 	{
-		if (player[i].getBet() >= firstBet)//either the player hasn't made a bet yet or folded
-		{//also the bet has to be greater or equal to the first
+		if (player[i].getBet() >= firstBet)
+		{//the bet has to be greater or equal to the first
 			bet += player[i].getBet();
 		}
 	}
@@ -57,7 +44,10 @@ int* Game::checkCards() const
 	for (int i = 0; i < players; i++)
 	{
 		if (!player[i].getActive()) //if the player folded skip
+		{
+			player[i].setHand(-1);
 			continue;
+		}
 		if (checkRoyalFlush(i))
 			continue;
 		if (checkStraightFlush(i))
@@ -533,133 +523,104 @@ void Game::sameHand() const
 						player[i].setHand(-1);
 					break;
 				case ThreeOfAKind:
-					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same trio card then others decide
+					for (int p = 7; p < 10; p++)
 					{
-						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard())
+						if (player[i].getCards()[p].getCard() == player[j].getCards()[p].getCard()) //if got same card then others decide
 						{
-							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//then suit decides
+							if (p == 9) //if last one is the same then suit decides
 							{
 								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
 									player[j].setHand(-1);
 								else
 									player[i].setHand(-1);
 							}
-							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
-								player[j].setHand(-1);
-							else
-								player[i].setHand(-1);
 						}
-						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+						else if (player[i].getCards()[p].getCard() > player[j].getCards()[p].getCard())
+						{
 							player[j].setHand(-1);
+							break;
+						}
 						else
+						{
 							player[i].setHand(-1);
+							break;
+						}
 					}
-					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
-						player[j].setHand(-1);
-					else
-						player[i].setHand(-1);
 					break;
 				case TwoPair:
-					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same highest pair card then others decide
+					for (int p = 7; p < 10; p++)
 					{
-						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //second pair
+						if (player[i].getCards()[p].getCard() == player[j].getCards()[p].getCard()) //if got same card then others decide
 						{
-							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then fifth card suit decides
+							if (p == 9) //if last one is the same then suit decides
 							{
 								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
 									player[j].setHand(-1);
 								else
 									player[i].setHand(-1);
 							}
-							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
-								player[j].setHand(-1);
-							else
-								player[i].setHand(-1);
 						}
-						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+						else if (player[i].getCards()[p].getCard() > player[j].getCards()[p].getCard())
+						{
 							player[j].setHand(-1);
+							break;
+						}
 						else
+						{
 							player[i].setHand(-1);
+							break;
+						}
 					}
-					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
-						player[j].setHand(-1);
-					else
-						player[i].setHand(-1);
 					break;
 				case OnePair:
-					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same pair then others decide
+					for (int p = 7; p < 11; p++)
 					{
-						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if same highest single card then next decide
+						if (player[i].getCards()[p].getCard() == player[j].getCards()[p].getCard()) //if got same card then others decide
 						{
-							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then next higher card decides
+							if (p == 10) //if last one is the same then suit decides
 							{
-								if (player[i].getCards()[10].getCard() == player[j].getCards()[10].getCard())//if same then suit decides
-								{
-									if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
-										player[j].setHand(-1);
-									else
-										player[i].setHand(-1);
-								}
-								else if (player[i].getCards()[10].getCard() > player[j].getCards()[10].getCard())
+								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
 									player[j].setHand(-1);
 								else
 									player[i].setHand(-1);
 							}
-							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
-								player[j].setHand(-1);
-							else
-								player[i].setHand(-1);
 						}
-						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+						else if (player[i].getCards()[p].getCard() > player[j].getCards()[p].getCard())
+						{
 							player[j].setHand(-1);
+							break;
+						}
 						else
+						{
 							player[i].setHand(-1);
+							break;
+						}
 					}
-					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
-						player[j].setHand(-1);
-					else
-						player[i].setHand(-1);
 					break;
 				case HighCard:
-					if (player[i].getCards()[7].getCard() == player[j].getCards()[7].getCard()) //if got same highest then others decide
+					for (int p = 7; p < 12; p++)
 					{
-						if (player[i].getCards()[8].getCard() == player[j].getCards()[8].getCard()) //if same next high then next decide
+						if (player[i].getCards()[p].getCard() == player[j].getCards()[p].getCard()) //if got same card then others decide
 						{
-							if (player[i].getCards()[9].getCard() == player[j].getCards()[9].getCard())//if same then next card decides
+							if (p == 11) //if last one is the same then suit decides
 							{
-								if (player[i].getCards()[10].getCard() == player[j].getCards()[10].getCard())//if same then next card decides
-								{
-									if (player[i].getCards()[11].getCard() == player[j].getCards()[11].getCard())//if same then suit decides
-									{
-										if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
-											player[j].setHand(-1);
-										else
-											player[i].setHand(-1);
-									}
-									else if (player[i].getCards()[11].getCard() > player[j].getCards()[11].getCard())
-										player[j].setHand(-1);
-									else
-										player[i].setHand(-1);
-								}
-								else if (player[i].getCards()[10].getCard() > player[j].getCards()[10].getCard())
+								if (player[i].getCards()[7].getSuit() < player[j].getCards()[7].getSuit())
 									player[j].setHand(-1);
 								else
 									player[i].setHand(-1);
 							}
-							else if (player[i].getCards()[9].getCard() > player[j].getCards()[9].getCard())
-								player[j].setHand(-1);
-							else
-								player[i].setHand(-1);
 						}
-						else if (player[i].getCards()[8].getCard() > player[j].getCards()[8].getCard())
+						else if (player[i].getCards()[p].getCard() > player[j].getCards()[p].getCard())
+						{
 							player[j].setHand(-1);
+							break;
+						}
 						else
+						{
 							player[i].setHand(-1);
+							break;
+						}
 					}
-					else if (player[i].getCards()[7].getCard() > player[j].getCards()[7].getCard()) //then one card is higher than the other
-						player[j].setHand(-1);
-					else
-						player[i].setHand(-1);
 					break;
 				}
 }

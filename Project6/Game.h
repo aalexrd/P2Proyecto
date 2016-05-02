@@ -41,8 +41,7 @@ private:
 	void sameHand() const;
 	void sortCards(int i) const;
 public:
-	Game();
-	Game(float bet, int players, Player* player);
+	explicit Game(float bet = 0, float firstBet = 0, int players = 0, Player* player = nullptr);
 	void dealCards() const;
 	void increaseBet();
 	int* checkCards() const;
