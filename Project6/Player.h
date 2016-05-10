@@ -1,23 +1,22 @@
 #pragma once
 #ifndef Player_H
 #define Player_H
-#include <string>
 #include "Deck.h"
 using namespace std;
 
 class Player
 {
 private:
-	string name;
+	wstring name;
 	float bet;
 	int hand; //which hand has the player
 	Card* cards;
 	bool active;
 public:
-	explicit Player(string name = "Generic", float bet = 0, int hand = 0, Card* cards = nullptr, bool active = false);
+	explicit Player(wstring name = L"Generic", float bet = 0, int hand = 0, Card* cards = nullptr, bool active = false);
 	~Player();
-	void setName(string name);
-	string getName() const;
+	void setName(wstring name);
+	wstring getName() const;
 	void setBet(float bet);
 	float getBet() const;
 	int getHand() const;

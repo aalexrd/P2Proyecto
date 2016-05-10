@@ -4,13 +4,13 @@
 #include "Card.h"
 using namespace std;
 
-class Deck
+class Deck// mazo
 {
 private:
-	static Card* deck;
+	Card* deck;
 public:
 	Deck();
-	static Card* getDeck();
-	void setDeck(Card* deck) const;
+	Card* getDeck() const;
+	void setDeck(Card* deck);
 };
 #endif

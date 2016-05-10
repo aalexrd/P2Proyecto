@@ -2,15 +2,18 @@
 
 Game::Game(float bet, float firstBet, int players, Player* player) : bet(bet), firstBet(firstBet), players(players), player(player)
 {
-	dealCards(); //time to deal cards to our players
+	if (players != 0)
+	{
+		this->player = new Player[players];
+		this->player = player;
+		dealCards(); //time to deal cards to our players
+	}
 }
 
 void Game::dealCards() const
 {
 	int v, playerIndex = 0, cardIndex = 0;
-	if (players == 0)
-		return;
-	while (cardIndex < 5) //we will be playing five card draw version of poker
+	while (cardIndex < 5 && playerIndex < players) //we will be playing five card draw version of poker
 	{
 		v = rand() % 52; //random number between 0 and 51
 		if (!getDeck()[v].getGiven())
@@ -143,7 +146,7 @@ bool Game::checkOnePair(int i) const
 bool Game::checkTwoPair(int i) const
 {
 	int counter, c;
-	char rank = 0;
+	wstring rank = L"";
 	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank
 	{
 		for (c = 0 , counter = 0; c < 5; c++)
@@ -489,8 +492,8 @@ void Game::sameHand() const
 						int sum = 0, sum2 = 0;
 						for (int k = 0; k < 5; k++)
 						{
-							sum += player[i].getCards()[k].getCard();
-							sum2 += player[j].getCards()[k].getCard();;
+							sum += player[i].getCards()[k].getCardValue();
+							sum2 += player[j].getCards()[k].getCardValue();
 						}
 						if (sum == sum2) //if fore some reason the sums are the same then suit decides
 						{

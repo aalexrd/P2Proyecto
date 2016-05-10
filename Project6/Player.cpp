@@ -1,8 +1,8 @@
 #include "Player.h"
 
-Player::Player(string name, float bet, int hand, Card* cards, bool active) : name(name), bet(bet), hand(hand), active(active)
+Player::Player(wstring name, float bet, int hand, Card* cards, bool active) : name(name), bet(bet), hand(hand), active(active)
 {
-	//if they did'nt send a custom pointer of Card then create it
+	//if they didn't send a custom pointer of Card then create it
 	if (cards == nullptr)
 		this->cards = new Card[12]; //enough space for variants like texas hold'em
 	else
@@ -13,12 +13,12 @@ Player::~Player()
 {
 }
 
-void Player::setName(string name)
+void Player::setName(wstring name)
 {
 	this->name = name;
 }
 
-string Player::getName() const
+wstring Player::getName() const
 {
 	return name;
 }

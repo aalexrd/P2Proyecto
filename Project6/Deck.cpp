@@ -15,12 +15,12 @@ Deck::Deck()
 		}
 }
 
-Card* Deck::getDeck()
+Card* Deck::getDeck() const
 {
 	return deck;
 }
 
-void Deck::setDeck(Card* deck) const
+void Deck::setDeck(Card* deck)
 {
 	this->deck = deck;
 }

@@ -3,16 +3,15 @@
 #define GAME_H
 #include "Deck.h"
 #include "Player.h"
-#include "time.h"
 using namespace std;
 
 class Game : public Deck
 {
-private:
+protected:
 	float bet;
 	float firstBet;
 
-	enum pokerHands
+	enum pokerHands//enum all hands from 0 to 9 in ascending order of value
 	{
 		HighCard,
 		OnePair,
@@ -41,7 +40,7 @@ private:
 	void sameHand() const;
 	void sortCards(int i) const;
 public:
-	explicit Game(float bet = 0, float firstBet = 0, int players = 0, Player* player = nullptr);
+	explicit Game(float bet = 0, float firstBet = 0, int players = 0, Player* player = new Player);
 	void dealCards() const;
 	void increaseBet();
 	int* checkCards() const;
