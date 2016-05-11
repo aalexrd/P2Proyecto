@@ -8,7 +8,7 @@ Interface::Interface()
 
 void Interface::UI()
 {
-	std::system("Color F0");
+	system("Color F0");
 	setw(L"Bienvenido al...\n");
 	setColor(2);
 	wcout << "\n"
@@ -27,37 +27,38 @@ void Interface::UI()
 		<< L"    \u2665\u2665              \u2665\u2665\u2665\u2665\u2665\u2665\u2665\u2665      \u2665\u2665      \u2665\u2665\u2665   \u2665\u2665\u2665\u2665\u2665\u2665\u2665\u2665\u2665\u2665\u2665   \u2665\u2665       \u2665\u2665\u2665 \n"
 		<< L"\n";
 	cin.get();
-	std::system("cls");
+	system("cls");
 	setw(L"Cuantos jugadores desean jugar?\n");
-	int players = readFloat();
-	float bet = 0, firstBet = 0;
-	while (players>7 || players<2)
+	players = readFloat(); //set players quantity
+	while (players > 7 || players < 2) //max of 7 players and a minimum of 2
 	{
 		wcout << L"No es un número correcto de jugadores";
 		cin.get();
-		std::system("cls");
+		system("cls");
 		setw(L"Cuantos jugadores desean jugar?\n");
 		players = readFloat();
 	}
 	player = new Player[players]; //use current pointer of Game class
-	std::system("cls");
+	system("cls");
 	setColor(0);
+	//ask players names and bets
 	for (int i = 0; i < players; i++)
 	{
-		setw(L"Ingrese el nombre del jugador " + to_wstring(i+1) + L"\n");
-		getPlayer()[i].setName(readWstring());
-		if (i == 0)
+		setw(L"Ingrese el nombre del jugador " + to_wstring(i + 1) + L"\n");
+		player[i].setName(readWstring());
+		if (i == 0) //if it is the first player
 		{
 			setw(L"De cuanto sera la apuesta? ");
 			bet = firstBet = readFloat();
-			getPlayer()[i].setBet(bet);
-			getPlayer()[i].setActive(true);
+			player[i].setBet(bet);
+			player[i].setActive(true);
 		}
 		else
 		{
-			setw(L"La apuesta inicial es de "+ to_wstring(firstBet)+L"\n");
-			setw(L"Si desea apostar lo mismo o mas, presione 1 para continuar.\n");
-			if (readFloat() == 1)
+			//print first bet and ask next player if wants to continue
+			floorf(firstBet) == firstBet ? setw(L"La apuesta inicial es de " + to_wstring(static_cast<int>(firstBet)) + L"\n") : setw(L"La apuesta inicial es de " + to_wstring(firstBet) + L"\n");
+			setw(L"Si desea apostar lo mismo o más, presione enter, si no, digite 1.\n");
+			if (readFloat() != 1)
 			{
 				setw(L"Ingrese su apuesta: ");
 				float temp = readFloat();
@@ -65,36 +66,52 @@ void Interface::UI()
 				{
 					setw(L"No te quieras pasar de listo... Esa apuesta es menor que la primera!\n");
 					cin.get();
+					player[i].setActive(false);
 				}
 				else
 				{
 					bet += temp;
-					getPlayer()[i].setBet(temp);
-					getPlayer()[i].setActive(true); //the player didn't fold
+					player[i].setBet(temp);
+					player[i].setActive(true); //the player didn't fold
 				}
 			}
+			else
+				player[i].setActive(false);
 		}
 		system("cls");
 	}
-	Game(bet, firstBet, players, player); //Initialize game with valid data
-	for (int i = 0; i < players; i++)
+	dealCards(); //Deal cards to players
+	//time to show players cards and let 'em decide
+	for (int i = 0; i < players && player[i].getActive(); i++)
 	{
-		setw(L"A continuacion se mostraran las cartas de "+ getPlayer()[i].getName() + L"\n");
+		setw(L"A continuacion se mostraran las cartas de " + player[i].getName() + L"\n");
+		setw(L"Si no eres el/ella no presiones enter\n");
 		cin.get();
 		setw(L"Ahora mira tus cartas y decide si quieres seguir...\n");
 		printCards(i);
-		setw(L"Presiona 1 para continuar jugando y apostar mas...");
-		setw(L"Si ya no quieres seguir presiona cualquier otra tecla");
 		if (i == 0)
 		{
-			setw(L"De cuanto sera la apuesta?");
-			bet = firstBet = readFloat();
+			setw(L"Presiona enter para continuar jugando y apostar más...\n");
+			setw(L"Si ya no quieres seguir ingresa 1 \n");
+			if (readFloat() != 1)
+			{
+				setw(L"De cuánto sera la apuesta?: ");
+				bet = firstBet = readFloat();
+			}
+			else
+			{
+				for (int i1 = 0; i1 < players - 1; i1++)
+					player[i1] = player[i1 + 1];
+				--players;
+				i = -1;
+			}
 		}
 		else
 		{
-			setw(L"La apuesta inicial es de " + to_wstring(firstBet) + L"\n");
-			setw(L"Si desea apostar lo mismo o mas, presione 1 para continuar.\n");
-			if (readFloat() == 1)
+			floorf(firstBet) == firstBet ? setw(L"La apuesta inicial es de " + to_wstring(static_cast<int>(firstBet)) + L"\n") : setw(L"La apuesta inicial es de " + to_wstring(firstBet) + L"\n");
+			setw(L"Si desea apostar lo mismo o mas, presione enter para continuar.\n");
+			setw(L"Si ya no quieres seguir ingresa 1 \n");
+			if (readFloat() != 1)
 			{
 				setw(L"Ingrese su apuesta: ");
 				float temp = stof(readWstring().c_str());
@@ -102,18 +119,32 @@ void Interface::UI()
 				{
 					setw(L"No te quieras pasar de listo... Esa apuesta es menor que la primera!\n");
 					cin.get();
+					player[i].setActive(false);
 				}
 				else
 				{
 					bet += temp;
-					getPlayer()[i].setBet(temp);
-					getPlayer()[i].setActive(true); //the player didn't fold
+					player[i].setBet(temp);
+					player[i].setActive(true); //the player didn't fold
 				}
 			}
 		}
+		system("cls");
 	}
-	setBet(bet);
-	setFirstBet(firstBet);
+	int* winners = checkCards();
+	if (winners == nullptr)
+		exit(0);
+	if (winners[0] == 1)
+		setw(L"Felicidades " + player[winners[1]].getName() + L" has ganado!\n");
+	else
+	{
+		setw(L"Se ha producido un empate en el lugar más alto, los ganadores:\n");
+		for (int i = 1; i <= winners[0]; i++)
+			setw(player[winners[i]].getName() + L"\n");
+	}
+	setw(L"Gracias por jugar");
+	cin.get();
+	exit(0);
 }
 
 void Interface::printCards(int i) const
@@ -126,39 +157,75 @@ void Interface::printCards(int i) const
 	}
 	for (int i1 = 0; i1 < 5; i1++)
 	{
-		wcout << L"  \u2502" << getPlayer()[i].getCards()[i1].getCard() << L"       \u2502  ";
+		if (player[i].getCards()[i1].getCard() == L"10")
+		{
+			wcout << L"  \u2502";
+			setColor(player[i].getCards()[i1].getColor());
+			wcout << player[i].getCards()[i1].getCard();
+			setColor(0);
+			wcout << L"       \u2502  ";
+		}
+		else
+		{
+			wcout << L"  \u2502";
+			setColor(player[i].getCards()[i1].getColor());
+			wcout << player[i].getCards()[i1].getCard();
+			setColor(0);
+			wcout << L"        \u2502  ";
+		}
 		if (i1 == 4)
 			wcout << endl;
 	}
 	for (int i1 = 0, lines = 0; i1 < 5; i1++)
 	{
-		wcout << L"  \u2502        \u2502  ";
+		wcout << L"  \u2502         \u2502  ";
 		if (lines == 0 && i1 == 4)
 		{
 			wcout << endl;
-			i1 = 0;
+			i1 = -1;
 			lines = 1;
 		}
 	}
+	wcout << endl;
 	for (int i1 = 0; i1 < 5; i1++)
 	{
-		wcout << L"  \u2502    " << getPlayer()[i].getCards()[i1].getSuit() << L"    \u2502  ";
+		wcout << L"  \u2502    ";
+		setColor(player[i].getCards()[i1].getColor());
+		wcout << player[i].getCards()[i1].getSuit();
+		setColor(0);
+		wcout << L"    \u2502  ";
 		if (i1 == 4)
 			wcout << endl;
 	}
 	for (int i1 = 0, lines = 0; i1 < 5; i1++)
 	{
-		wcout << L"  \u2502        \u2502  ";
+		wcout << L"  \u2502         \u2502  ";
 		if (lines == 0 && i1 == 4)
 		{
 			wcout << endl;
-			i1 = 0;
+			i1 = -1;
 			lines = 1;
 		}
 	}
+	wcout << endl;
 	for (int i1 = 0; i1 < 5; i1++)
 	{
-		wcout << L"  \u2502        " << getPlayer()[i].getCards()[i1].getCard() << L"\u2502  ";
+		if (player[i].getCards()[i1].getCard() == L"10")
+		{
+			wcout << L"  \u2502       ";
+			setColor(player[i].getCards()[i1].getColor());
+			wcout << player[i].getCards()[i1].getCard();
+			setColor(0);
+			wcout << L"\u2502  ";
+		}
+		else
+		{
+			wcout << L"  \u2502        ";
+			setColor(player[i].getCards()[i1].getColor());
+			wcout << player[i].getCards()[i1].getCard();
+			setColor(0);
+			wcout << L"\u2502  ";
+		}
 		if (i1 == 4)
 			wcout << endl;
 	}
@@ -168,6 +235,9 @@ void Interface::printCards(int i) const
 		if (i1 == 4)
 			wcout << endl;
 	}
+	setw(L"Presiona cualquier tecla para continuar.\n");
+	cin.get();
+	system("cls");
 }
 
 void Interface::setw(const wchar_t* i)
@@ -210,6 +280,11 @@ wstring Interface::readWstring() const
 {
 	string i;
 	getline(cin, i);
+	while (i == "")
+	{
+		setw(L"Ingrese lo que se le solicitó\n");
+		getline(cin, i);
+	}
 	return wstring(i.begin(), i.end());
 }
 
@@ -222,9 +297,9 @@ k:
 	{
 		if (isdigit(i[k]) == false)
 		{
-			wcout << L"Digite lo que se le solicit\242, intente de nuevo\n";
+			wcout << L"Digite lo que se le solicitó, intente de nuevo\n";
 			goto k;
 		}
 	}
-	return stof(i.c_str());
+	return i != "" ? stof(i.c_str()) : 0;
 }

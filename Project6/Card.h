@@ -7,7 +7,7 @@ using namespace std;
 class Card
 {
 private:
-	const wchar_t suits[4] = {'\u2660', '\u2665', '\u2666', '\u2663'}; // 0 \u2660 = spades, 1 \u2665 = heart, 2 \u2666 = diamond, 3 \u2663 = clubs
+	const wchar_t suits[4] = {L'\u2660', L'\u2665', L'\u2666', L'\u2663'}; // 0 \u2660 = spades, 1 \u2665 = heart, 2 \u2666 = diamond, 3 \u2663 = clubs
 	const wstring cards[13] = {L"2", L"3", L"4", L"5", L"6", L"7", L"8", L"9", L"10", L"J", L"Q", L"K", L"A"};
 	wchar_t suit;
 	wstring card;

@@ -18,8 +18,8 @@ void Game::dealCards() const
 		v = rand() % 52; //random number between 0 and 51
 		if (!getDeck()[v].getGiven())
 		{
-			player[playerIndex].addCard(getDeck()[v]);
 			getDeck()[v].setGiven(true);
+			player[playerIndex].addCard(getDeck()[v]);
 			++cardIndex;
 			if (cardIndex == 5 && playerIndex < players)//if I haven't finished to deal cards to all players
 			{
@@ -43,7 +43,6 @@ void Game::increaseBet()
 
 int* Game::checkCards() const
 {
-	int count = 0;
 	for (int i = 0; i < players; i++)
 	{
 		if (!player[i].getActive()) //if the player folded skip
@@ -73,29 +72,32 @@ int* Game::checkCards() const
 		sortCards(i); //for high card
 	}
 	sameHand();
-	for (int k = 9; k >= 0; k--)
+	int* winners;
+	for (int k = 9, count = 0; k >= 0; k--)
 		for (int i = 0; i < players; i++)
 		{
 			if (!player[i].getActive()) //if the player folded skip
 				continue;
 			if (player[i].getHand() == k) //if enters here it found the highest hand among all players
+			{
 				for (k = 0; k < players; k++) //then lets find if there's a tie
-				{
-					if (player[i].getHand() == player[k].getHand())
+					if (player[i].getHand() == player[k].getHand() && i != k)
 						++count;
-					int* winners;
-					if (count == 0) //if there's only one winner create structure for this if not work
-					{
-						winners = &i;
-						return winners;
-					}
-					winners = new int[count];
-					winners[0] = i;
-					for (k = 0 , count = 0; k < players; k++)
-						if (player[i].getHand() == player[k].getHand())
-							winners[++count] = k;
+				if (count == 0) //if there's only one winner
+				{
+					winners = new int[2];
+					winners[0] = 1; //send how many winners are there
+					winners[1] = i;
 					return winners;
 				}
+				winners = new int[count + 2];
+				winners[0] = ++count; //send how many winners are there
+				winners[1] = i; //save first winner found
+				for (k = 0 , count = 1; k < players; k++) //k is the index of player, count is the index of the vec for winners
+					if (player[i].getHand() == player[k].getHand() && i != k)
+						winners[++count] = k;
+				return winners;
+			}
 		}
 	return nullptr;
 }
@@ -136,6 +138,7 @@ bool Game::checkOnePair(int i) const
 								player[i].getCards()[counter] = player[i].getCards()[c];
 								break;
 							}
+					player[i].setHand(OnePair);
 					return true;
 				}
 			}
@@ -187,6 +190,7 @@ bool Game::checkTwoPair(int i) const
 					for (int ch = 0; ch < 5; ch++) //look for fifth different
 						if (player[i].getCards()[ch].getCard() != player[i].getCards()[7].getCard() && player[i].getCards()[ch].getCard() != player[i].getCards()[8].getCard())
 							player[i].getCards()[9] = player[i].getCards()[ch];
+					player[i].setHand(TwoPair);
 					return true;
 				}
 			}
@@ -220,6 +224,7 @@ bool Game::checkThreeOfAKind(int i) const
 							++counter;
 							player[i].getCards()[counter] = player[i].getCards()[c];
 						}
+					player[i].setHand(ThreeOfAKind);
 					return true;
 				}
 			}
@@ -251,6 +256,7 @@ bool Game::checkStraight(int i) const
 				if (lowest == 4)
 				{
 					sortCards(i);
+					player[i].setHand(Straight);
 					return true;
 				}
 				sf = 0;
@@ -266,6 +272,7 @@ bool Game::checkStraight(int i) const
 				if (counter == 5)
 				{
 					sortCards(i);
+					player[i].setHand(Straight);
 					return true;
 				}
 				sf = 0;
@@ -286,6 +293,7 @@ bool Game::checkFlush(int i) const
 		if (counter == 5)
 		{
 			player[i].getCards()[7] = player[i].getCards()[checkHighCard(i)];
+			player[i].setHand(Flush);
 			return true;
 		}
 	}
@@ -320,7 +328,7 @@ bool Game::checkFullHouse(int i) const
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
+			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && getDeck()->getCards()[fh] != player[i].getCards()[7].getCard())
 			{
 				++counter;
 				if (counter == 2)
@@ -333,6 +341,7 @@ bool Game::checkFullHouse(int i) const
 					/*fh = -1;
 					break;
 				}*/
+					player[i].setHand(FullHouse);
 					return true;
 				}
 			}
@@ -356,6 +365,7 @@ bool Game::checkFourOfAKind(int i) const
 					/*for (fk = 0; fk < 5; fk++)
 						if(player[i].getCards()[fk].getCard() != player[i].getCards()[7].getCard())
 							player[i].getCards()[8] = player[i].getCards()[fk];*/
+					player[i].setHand(FourOfAKind);
 					return true;
 				}
 			}
@@ -373,7 +383,11 @@ bool Game::checkStraightFlush(int i) const
 			if (player[i].getCards()[c].getSuit() == getDeck()->getSuits()[sf])
 				++counter;
 		if (counter == 5) //once we validate that all cards have the same suit check if they're consecutive
-			return checkStraight(i);
+			if (checkStraight(i))
+			{
+				player[i].setHand(StraightFlush);
+				return true;
+			}
 	}
 	return false;
 }
@@ -396,7 +410,10 @@ bool Game::checkRoyalFlush(int i) const
 					{
 						++counter;
 						if (counter == 5)
+						{
+							player[i].setHand(RoyalFlush);
 							return true;
+						}
 						rf = 0;
 					}
 		}
@@ -409,7 +426,7 @@ void Game::sameHand() const
 {
 	for (int i = 0; i < players; i++)
 		for (int j = 0; j < players; j++)
-			if (player[i].getHand() == player[j].getHand() && i != j && player[i].getHand() != -1)
+			if (player[i].getHand() == player[j].getHand() && i != j && player[i].getHand() != -1 && player[i].getActive() && player[j].getActive())
 				switch (player[i].getHand())
 				{
 				case RoyalFlush: //if two got Royal Flush then the suit decides
