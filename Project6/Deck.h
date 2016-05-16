@@ -6,7 +6,7 @@ using namespace std;
 
 class Deck// mazo
 {
-private:
+protected:
 	Card* deck;
 public:
 	Deck();

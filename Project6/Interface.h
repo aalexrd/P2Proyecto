@@ -15,7 +15,7 @@ public:
 	void UI();
 	void printCards(int i) const;
 	static void setw(const wchar_t* i);
-	void setw(wstring i) const;
+	static void setw(wstring i);
 	static void setColor(WORD c);
 	wstring readWstring() const;
 	float readFloat() const;

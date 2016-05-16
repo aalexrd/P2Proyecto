@@ -249,7 +249,7 @@ void Interface::setw(const wchar_t* i)
 	wcout << i;
 }
 
-void Interface::setw(wstring i) const
+void Interface::setw(wstring i)
 {
 	setw(i.c_str());
 }

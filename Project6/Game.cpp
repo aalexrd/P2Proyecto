@@ -16,10 +16,10 @@ void Game::dealCards() const
 	while (cardIndex < 5 && playerIndex < players) //we will be playing five card draw version of poker
 	{
 		v = rand() % 52; //random number between 0 and 51
-		if (!getDeck()[v].getGiven())
+		if (!deck[v].getGiven())
 		{
-			getDeck()[v].setGiven(true);
-			player[playerIndex].addCard(getDeck()[v]);
+			deck[v].setGiven(true);
+			player[playerIndex].addCard(deck[v]);
 			++cardIndex;
 			if (cardIndex == 5 && playerIndex < players)//if I haven't finished to deal cards to all players
 			{
@@ -106,7 +106,7 @@ int Game::checkHighCard(int i) const
 {
 	for (int l = 12; l >= 0; l--) //find highest ranking of card
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[l])
 				return l;
 	return 0;
 }
@@ -117,14 +117,14 @@ bool Game::checkOnePair(int i) const
 	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank
 	{
 		for (c = 0 , counter = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh])
 			{
 				++counter;
 				if (counter == 2)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
 						for (int ch = 0; ch < 5; ch++)
-							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
 					/*fh = -1;
@@ -132,7 +132,7 @@ bool Game::checkOnePair(int i) const
 				}*/
 					for (l = 12 , counter = 7; l >= 0 && counter < 11; l--)
 						for (c = 0; c < 5; c++)
-							if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l] && player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
+							if (player[i].getCards()[c].getCard() == deck->getCards()[l] && player[i].getCards()[c].getCard() != player[i].getCards()[7].getCard())
 							{
 								++counter;
 								player[i].getCards()[counter] = player[i].getCards()[c];
@@ -153,14 +153,14 @@ bool Game::checkTwoPair(int i) const
 	for (int fh = 0; fh < 13; fh++) //look for two cards of same rank
 	{
 		for (c = 0 , counter = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh])
 			{
 				++counter;
 				if (counter == 2)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
 						for (int ch = 0; ch < 5; ch++)
-							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
 					/*fh = -1;
@@ -174,14 +174,14 @@ bool Game::checkTwoPair(int i) const
 	for (int fh = 0; fh < 13; fh++) //look for another two cards of same rank but different from the past two
 	{
 		for (c = 0 , counter = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && player[i].getCards()[c].getCard() != rank)
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh] && player[i].getCards()[c].getCard() != rank)
 			{
 				++counter;
 				if (counter == 2)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
 						for (int ch = 0; ch < 5; ch++)
-							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[8] = player[i].getCards()[c]; //change c for ch
 					/*fh = -1;
@@ -205,14 +205,14 @@ bool Game::checkThreeOfAKind(int i) const
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh])
 			{
 				++counter;
 				if (counter == 3)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the three
 						for (int ch = 0; ch < 5; ch++)
-							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[7] = player[i].getCards()[c]; //change c to ch
 					/*fh = -1;
@@ -238,19 +238,19 @@ bool Game::checkStraight(int i) const
 	int counter = 0, lowest = 0;
 	for (int l = 0; l < 13 && passed; l++) //find lowest ranking of card
 		for (int c = 0; c < 5 && passed; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[l])
 			{ //for to save cards in order from #7
 				lowest = c;
 				passed = false; //break both for
 			}
 	if (lowest == 0) //check if Ace has to be used as 1
 		for (int l = 0; l < 5; l++)
-			if (player[i].getCards()[l].getCard() == getDeck()->getCards()[12])
+			if (player[i].getCards()[l].getCard() == deck->getCards()[12])
 				aceAsOne = true;
 	if (aceAsOne)
 	{
 		for (int sf = 0; sf < 5; sf++)
-			if (player[i].getCards()[sf].getCard() == getDeck()->getCards()[lowest])
+			if (player[i].getCards()[sf].getCard() == deck->getCards()[lowest])
 			{
 				++lowest;
 				if (lowest == 4)
@@ -265,7 +265,7 @@ bool Game::checkStraight(int i) const
 	else
 	{
 		for (int sf = 0; sf < 5 && lowest < 8; sf++)
-			if (player[i].getCards()[sf].getCard() == getDeck()->getCards()[lowest])
+			if (player[i].getCards()[sf].getCard() == deck->getCards()[lowest])
 			{
 				++lowest;
 				++counter;
@@ -288,7 +288,7 @@ bool Game::checkFlush(int i) const
 	{
 		counter = 0;
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getSuit() == getDeck()->getSuits()[fh])
+			if (player[i].getCards()[c].getSuit() == deck->getSuits()[fh])
 				++counter;
 		if (counter == 5)
 		{
@@ -307,14 +307,14 @@ bool Game::checkFullHouse(int i) const
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh])
 			{
 				++counter;
 				if (counter == 3)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the three
 						for (int ch = 0; ch < 5; ch++)
-							if(player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if(player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[7] = player[i].getCards()[c]; //change c for ch
 					/*fh = -1;
@@ -328,14 +328,14 @@ bool Game::checkFullHouse(int i) const
 	{
 		counter = 0;
 		for (c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fh] && getDeck()->getCards()[fh] != player[i].getCards()[7].getCard())
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fh] && deck->getCards()[fh] != player[i].getCards()[7].getCard())
 			{
 				++counter;
 				if (counter == 2)
 				{
 					/*for (fh = 3; fh >= 0; fh--) //peek highest suit of the two
 						for (ch = 0; ch < 5; ch++)
-							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == getDeck()->getSuits()[fh])
+							if (player[i].getCards()[ch].getCard() == player[i].getCards()[c].getCard() && player[i].getCards()[ch].getSuit() == deck->getSuits()[fh])
 							{*/
 					player[i].getCards()[8] = player[i].getCards()[c]; //change c for ch
 					/*fh = -1;
@@ -356,7 +356,7 @@ bool Game::checkFourOfAKind(int i) const
 	{
 		counter = 0;
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[fk])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[fk])
 			{
 				++counter;
 				if (counter == 4)
@@ -380,7 +380,7 @@ bool Game::checkStraightFlush(int i) const
 	{
 		counter = 0;
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getSuit() == getDeck()->getSuits()[sf])
+			if (player[i].getCards()[c].getSuit() == deck->getSuits()[sf])
 				++counter;
 		if (counter == 5) //once we validate that all cards have the same suit check if they're consecutive
 			if (checkStraight(i))
@@ -399,14 +399,14 @@ bool Game::checkRoyalFlush(int i) const
 	{
 		counter = 0;
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getSuit() == getDeck()->getSuits()[fh])
+			if (player[i].getCards()[c].getSuit() == deck->getSuits()[fh])
 				++counter;
 		if (counter == 5)
 		{
 			counter = 0;
 			for (int rf = 0; rf < 5; rf++)
 				for (int c = 9; c < 13; c++)
-					if (player[i].getCards()[rf].getCard() == getDeck()->getCards()[c])
+					if (player[i].getCards()[rf].getCard() == deck->getCards()[c])
 					{
 						++counter;
 						if (counter == 5)
@@ -649,7 +649,7 @@ void Game::sortCards(int i) const
 {
 	for (int l = 12, counter = 7; l >= 0 && counter < 12; l--)
 		for (int c = 0; c < 5; c++)
-			if (player[i].getCards()[c].getCard() == getDeck()->getCards()[l])
+			if (player[i].getCards()[c].getCard() == deck->getCards()[l])
 			{
 				player[i].getCards()[counter] = player[i].getCards()[c];
 				++counter;
